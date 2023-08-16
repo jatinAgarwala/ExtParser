@@ -73,62 +73,62 @@ namespace Grammar
 
   mutual
     -- Property of PEG grammar that can be failed
-    inductive PropF : GProd n → PEG n → Prop where
-      | any : PropF Pexp any
-      | terminal : ∀ (c : Char), PropF Pexp (terminal c)
-      | nonTerminal : ∀ (vn : Fin n), PropF Pexp (Pexp.f vn) → PropF Pexp (nonTerminal vn)
-      | seq_F : ∀ (e1 e2 : PEG n), PropF Pexp e1 → PropF Pexp (seq e1 e2)
-      | seq_0F : ∀ (e1 e2 : PEG n), Prop0 Pexp e1 → PropF Pexp e2 → PropF Pexp (seq e1 e2)
-      | seq_SF : ∀ (e1 e2 : PEG n), PropS Pexp e1 → PropF Pexp e2 → PropF Pexp (seq e1 e2)
-      | prior : ∀ (e1 e2 : PEG n), PropF Pexp e1 → PropF Pexp e2 → PropF Pexp (prior e1 e2)
-      | notP_0 : ∀ (e : PEG n), Prop0 Pexp e → PropF Pexp (notP e)
-      | notP_S : ∀ (e : PEG n), PropS Pexp e → PropF Pexp (notP e)
+    inductive Fail : GProd n → PEG n → Prop where
+      | any : Fail Pexp any
+      | terminal : ∀ (c : Char), Fail Pexp (terminal c)
+      | nonTerminal : ∀ (vn : Fin n), Fail Pexp (Pexp.f vn) → Fail Pexp (nonTerminal vn)
+      | seq_F : ∀ (e1 e2 : PEG n), Fail Pexp e1 → Fail Pexp (seq e1 e2)
+      | seq_0F : ∀ (e1 e2 : PEG n), SucceedWithoutConsuming Pexp e1 → Fail Pexp e2 → Fail Pexp (seq e1 e2)
+      | seq_SF : ∀ (e1 e2 : PEG n), SucceedWithConsuming Pexp e1 → Fail Pexp e2 → Fail Pexp (seq e1 e2)
+      | prior : ∀ (e1 e2 : PEG n), Fail Pexp e1 → Fail Pexp e2 → Fail Pexp (prior e1 e2)
+      | notP_0 : ∀ (e : PEG n), SucceedWithoutConsuming Pexp e → Fail Pexp (notP e)
+      | notP_S : ∀ (e : PEG n), SucceedWithConsuming Pexp e → Fail Pexp (notP e)
 
     -- Property of PEG grammar that can succeed without consuming input
-    inductive Prop0 : GProd n → PEG n → Prop where
-      | ε : Prop0 Pexp ε
-      | nonTerminal : ∀ (vn : Fin n), Prop0 Pexp (Pexp.f vn) → Prop0 Pexp (nonTerminal vn)
-      | seq : ∀ (e1 e2 : PEG n), Prop0 Pexp e1 → Prop0 Pexp e2 → Prop0 Pexp (seq e1 e2)
-      | prior_0 : ∀ (e1 e2 : PEG n), Prop0 Pexp e1 → Prop0 Pexp (prior e1 e2)
-      | prior_F0 : ∀ (e1 e2 : PEG n), PropF Pexp e1 → Prop0 Pexp e2 → Prop0 Pexp (prior e1 e2)
-      | star : ∀ (e : PEG n), PropF Pexp e → Prop0 Pexp (star e)
-      | notP : ∀ (e : PEG n), PropF Pexp e → Prop0 Pexp (notP e)
+    inductive SucceedWithoutConsuming : GProd n → PEG n → Prop where
+      | ε : SucceedWithoutConsuming Pexp ε
+      | nonTerminal : ∀ (vn : Fin n), SucceedWithoutConsuming Pexp (Pexp.f vn) → SucceedWithoutConsuming Pexp (nonTerminal vn)
+      | seq : ∀ (e1 e2 : PEG n), SucceedWithoutConsuming Pexp e1 → SucceedWithoutConsuming Pexp e2 → SucceedWithoutConsuming Pexp (seq e1 e2)
+      | prior_0 : ∀ (e1 e2 : PEG n), SucceedWithoutConsuming Pexp e1 → SucceedWithoutConsuming Pexp (prior e1 e2)
+      | prior_F0 : ∀ (e1 e2 : PEG n), Fail Pexp e1 → SucceedWithoutConsuming Pexp e2 → SucceedWithoutConsuming Pexp (prior e1 e2)
+      | star : ∀ (e : PEG n), Fail Pexp e → SucceedWithoutConsuming Pexp (star e)
+      | notP : ∀ (e : PEG n), Fail Pexp e → SucceedWithoutConsuming Pexp (notP e)
 
     -- Property of PEG grammar that can succeed only by consuming input
-    inductive PropS : GProd n → PEG n → Prop where
-      | any : PropS Pexp any
-      | terminal : ∀ (c : Char), PropS Pexp (terminal c)
-      | nonTerminal : ∀ (vn : Fin n), PropS Pexp (Pexp.f vn) → PropS Pexp (nonTerminal vn)
-      | seq_S0 : ∀ (e1 e2 : PEG n), PropS Pexp e1 → Prop0 Pexp e2 → PropS Pexp (seq e1 e2)
-      | seq_0S : ∀ (e1 e2 : PEG n), Prop0 Pexp e1 → PropS Pexp e2 → PropS Pexp (seq e1 e2)
-      | seq_SS : ∀ (e1 e2 : PEG n), PropS Pexp e1 → PropS Pexp e2 → PropS Pexp (seq e1 e2)
-      | prior_S : ∀ (e1 e2 : PEG n), PropS Pexp e1 → PropS Pexp (prior e1 e2)
-      | prior_FS : ∀ (e1 e2 : PEG n), PropF Pexp e1 → PropS Pexp e2 → PropS Pexp (prior e1 e2)
-      | star : ∀ (e : PEG n), PropS Pexp e → PropS Pexp (star e)
+    inductive SucceedWithConsuming : GProd n → PEG n → Prop where
+      | any : SucceedWithConsuming Pexp any
+      | terminal : ∀ (c : Char), SucceedWithConsuming Pexp (terminal c)
+      | nonTerminal : ∀ (vn : Fin n), SucceedWithConsuming Pexp (Pexp.f vn) → SucceedWithConsuming Pexp (nonTerminal vn)
+      | seq_S0 : ∀ (e1 e2 : PEG n), SucceedWithConsuming Pexp e1 → SucceedWithoutConsuming Pexp e2 → SucceedWithConsuming Pexp (seq e1 e2)
+      | seq_0S : ∀ (e1 e2 : PEG n), SucceedWithoutConsuming Pexp e1 → SucceedWithConsuming Pexp e2 → SucceedWithConsuming Pexp (seq e1 e2)
+      | seq_SS : ∀ (e1 e2 : PEG n), SucceedWithConsuming Pexp e1 → SucceedWithConsuming Pexp e2 → SucceedWithConsuming Pexp (seq e1 e2)
+      | prior_S : ∀ (e1 e2 : PEG n), SucceedWithConsuming Pexp e1 → SucceedWithConsuming Pexp (prior e1 e2)
+      | prior_FS : ∀ (e1 e2 : PEG n), Fail Pexp e1 → SucceedWithConsuming Pexp e2 → SucceedWithConsuming Pexp (prior e1 e2)
+      | star : ∀ (e : PEG n), SucceedWithConsuming Pexp e → SucceedWithConsuming Pexp (star e)
   end
 
-  abbrev PropsTriple (Pexp : GProd n) (G : PEG n) := Maybe (PropF Pexp) G × Maybe (Prop0 Pexp) G × Maybe (PropS Pexp) G
+  abbrev PropsTriple (Pexp : GProd n) (G : PEG n) := Maybe (Fail Pexp) G × Maybe (SucceedWithoutConsuming Pexp) G × Maybe (SucceedWithConsuming Pexp) G
   abbrev PropsTriplePred (Pexp : GProd n) := ∀ (i : Fin n), PropsTriple Pexp (Pexp.f i)
 
   -- Compute grammar properties in one iteration
   def g_props {Pexp : GProd n} (G : PEG n) (P : PropsTriplePred Pexp) : PropsTriple Pexp G :=
     match G with
-    | ε => (unknown, found (Prop0.ε), unknown)
-    | any => (found (PropF.any), unknown, found (PropS.any))
-    | terminal c => (found (PropF.terminal c), unknown, found (PropS.terminal c))
+    | ε => (unknown, found (SucceedWithoutConsuming.ε), unknown)
+    | any => (found (Fail.any), unknown, found (SucceedWithConsuming.any))
+    | terminal c => (found (Fail.terminal c), unknown, found (SucceedWithConsuming.terminal c))
     | nonTerminal vn =>
       have (e_f, e_0, e_s) := P vn
       (
         match e_f with
-          | found h => found (PropF.nonTerminal vn h)
+          | found h => found (Fail.nonTerminal vn h)
           | unknown => unknown
         ,
         match e_0 with
-          | found h => found (Prop0.nonTerminal vn h)
+          | found h => found (SucceedWithoutConsuming.nonTerminal vn h)
           | unknown => unknown
         ,
         match e_s with
-          | found h => found (PropS.nonTerminal vn h)
+          | found h => found (SucceedWithConsuming.nonTerminal vn h)
           | unknown => unknown
       )
     | seq e1 e2 =>
@@ -136,19 +136,19 @@ namespace Grammar
       have (e2_f, e2_0, e2_s) := g_props e2 P;
       (
         match (e1_f, e1_0, e1_s, e2_f) with
-          | (found h, _, _, _) => found (PropF.seq_F e1 e2 h)
-          | (_,found h0,_,found hf) => found (PropF.seq_0F e1 e2 h0 hf)
-          | (_,_,found hs,found hf) => found (PropF.seq_SF e1 e2 hs hf)
+          | (found h, _, _, _) => found (Fail.seq_F e1 e2 h)
+          | (_,found h0,_,found hf) => found (Fail.seq_0F e1 e2 h0 hf)
+          | (_,_,found hs,found hf) => found (Fail.seq_SF e1 e2 hs hf)
           | _ => unknown
         ,
         match (e1_0, e2_0) with
-          | (found h1, found h2) => found (Prop0.seq e1 e2 h1 h2)
+          | (found h1, found h2) => found (SucceedWithoutConsuming.seq e1 e2 h1 h2)
           | _ => unknown
         ,
         match (e1_0, e1_s, e2_0, e2_s) with
-          | (_,found hs,found h0,_) => found (PropS.seq_S0 e1 e2 hs h0)
-          | (found h0,_,_,found hs) => found (PropS.seq_0S e1 e2 h0 hs)
-          | (_,found h1,_,found h2) => found (PropS.seq_SS e1 e2 h1 h2)
+          | (_,found hs,found h0,_) => found (SucceedWithConsuming.seq_S0 e1 e2 hs h0)
+          | (found h0,_,_,found hs) => found (SucceedWithConsuming.seq_0S e1 e2 h0 hs)
+          | (_,found h1,_,found h2) => found (SucceedWithConsuming.seq_SS e1 e2 h1 h2)
           | _ => unknown
       )
     | prior e1 e2 =>
@@ -156,12 +156,12 @@ namespace Grammar
       have (e2_f, e2_0, _) := g_props e2 P;
       (
         match (e1_f, e2_f) with
-          | (found h1, found h2) => found (PropF.prior e1 e2 h1 h2)
+          | (found h1, found h2) => found (Fail.prior e1 e2 h1 h2)
           | _ => unknown
         ,
         match (e1_f, e1_0, e2_0) with
-          | (_,found h,_) => found (Prop0.prior_0 e1 e2 h)
-          | (found hf,_,found h0) => found (Prop0.prior_F0 e1 e2 hf h0)
+          | (_,found h,_) => found (SucceedWithoutConsuming.prior_0 e1 e2 h)
+          | (found hf,_,found h0) => found (SucceedWithoutConsuming.prior_F0 e1 e2 hf h0)
           | _ => unknown
         ,
         unknown
@@ -172,23 +172,23 @@ namespace Grammar
         unknown
         ,
         match e_f with
-          | found h => found (Prop0.star e h)
+          | found h => found (SucceedWithoutConsuming.star e h)
           | unknown => unknown
         ,
         match e_s with
-          | found h => found (PropS.star e h)
+          | found h => found (SucceedWithConsuming.star e h)
           | unknown => unknown
       )
     | notP e =>
       have (e_f, e_0, e_s) := g_props e P;
       (
         match (e_0, e_s) with
-          | (found h,_) => found (PropF.notP_0 e h)
-          | (_,found h) => found (PropF.notP_S e h)
+          | (found h,_) => found (Fail.notP_0 e h)
+          | (_,found h) => found (Fail.notP_S e h)
           | _ => unknown
         ,
         match e_f with
-          | found h => found (Prop0.notP e h)
+          | found h => found (SucceedWithoutConsuming.notP e h)
           | unknown => unknown
         ,
         unknown
@@ -1090,15 +1090,15 @@ namespace Grammar
     let unknownPred : CoherentPred Pexp := CoherentPred.mk (fun _ => (unknown, unknown, unknown)) (by intro i; constructor <;> simp <;> exact Maybe.le.lhs_unknown);
     compute_props unknownPred
   
-  def getPropF (Pexp : GProd n) (G : PEG n) : Maybe (PropF Pexp) G :=
+  def getPropF (Pexp : GProd n) (G : PEG n) : Maybe (Fail Pexp) G :=
     let P := Pexp.get_props.pred;
     (g_props G P).fst
   
-  def getProp0 (Pexp : GProd n) (G : PEG n) : Maybe (Prop0 Pexp) G :=
+  def getProp0 (Pexp : GProd n) (G : PEG n) : Maybe (SucceedWithoutConsuming Pexp) G :=
     let P := Pexp.get_props.pred;
     (g_props G P).snd.fst
   
-  def getPropS (Pexp : GProd n) (G : PEG n) : Maybe (PropS Pexp) G :=
+  def getPropS (Pexp : GProd n) (G : PEG n) : Maybe (SucceedWithConsuming Pexp) G :=
     let P := Pexp.get_props.pred;
     (g_props G P).snd.snd
   
@@ -1300,8 +1300,8 @@ namespace Grammar
   -- This is important as it ensures the properties of pattern-wellformed grammar are decidable (which differs from Maybe type).
   -- TODO: Prove these. I may need to read the relevant proofs of graph theory in MathLib. I think it might be quite complicated (Please help).
   -- ESSENTIAL FOR PARSING
-  theorem PatternWF_GProd.decidable_propF {p : Fin n → Fin n} {σ : Bijective p} (pattern : PatternWF_GProd Pexp σ) (G : PEG n) : Decidable (PropF Pexp G) := sorry
-  theorem PatternWF_GProd.decidable_prop0 {p : Fin n → Fin n} {σ : Bijective p} (pattern : PatternWF_GProd Pexp σ) (G : PEG n) : Decidable (Prop0 Pexp G) := sorry
-  theorem PatternWF_GProd.decidable_propS {p : Fin n → Fin n} {σ : Bijective p} (pattern : PatternWF_GProd Pexp σ) (G : PEG n) : Decidable (PropS Pexp G) := sorry
+  theorem PatternWF_GProd.decidable_propF {p : Fin n → Fin n} {σ : Bijective p} (pattern : PatternWF_GProd Pexp σ) (G : PEG n) : Decidable (Fail Pexp G) := sorry
+  theorem PatternWF_GProd.decidable_prop0 {p : Fin n → Fin n} {σ : Bijective p} (pattern : PatternWF_GProd Pexp σ) (G : PEG n) : Decidable (SucceedWithoutConsuming Pexp G) := sorry
+  theorem PatternWF_GProd.decidable_propS {p : Fin n → Fin n} {σ : Bijective p} (pattern : PatternWF_GProd Pexp σ) (G : PEG n) : Decidable (SucceedWithConsuming Pexp G) := sorry
   
 end Grammar
